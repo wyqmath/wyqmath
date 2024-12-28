@@ -1,6 +1,6 @@
 <p align="center">
-    <a href="https://wyqmath.cn/" style="text-decoration: none;">
-        <img alt="Website" src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=20&duration=500&repeat=false&color=FFFFFF&center=true&vCenter=true&multiline=true&width=400&height=85&lines=Visit+My+Website" style="background-color: #007ACC; padding: 10px; border-radius: 5px; font-weight: bold;"/>
+    <a href="https://wyqmath.cn/" style="text-decoration: none; background-color: #007ACC; color: white; padding: 10px 20px; border-radius: 5px; font-weight: bold; font-size: 20px;">
+        Visit My Website
     </a>
 </p>
 
