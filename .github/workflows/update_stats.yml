@@ -17,6 +17,11 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Pull latest changes to avoid conflicts
+        run: git pull --rebase
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -32,9 +37,6 @@ jobs:
         run: python .github/scripts/generate_stats.py
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Pull latest changes to avoid conflicts
-        run: git pull --rebase
 
       - name: Commit and push if changes
         uses: stefanzweifel/git-auto-commit-action@v5
