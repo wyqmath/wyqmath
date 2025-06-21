@@ -1,6 +1,7 @@
 import os
 import requests
 import sys
+from datetime import datetime
 
 # --- Configuration ---
 USERNAME = "wyqmath"
@@ -77,33 +78,98 @@ def get_contribution_stars():
     
     return total_stars
 
-def generate_svg_badge(stars_count):
-    """Generates an SVG badge image with the star count."""
-    # Simple SVG badge template
-    # You can customize colors, fonts, and layout here
-    if stars_count >= 1000:
-        display_stars = f"{stars_count/1000:.1f}k"
-    else:
-        display_stars = str(stars_count)
+def get_contribution_stats():
+    """
+    Fetches all-time contribution stats for a user (commits, PRs, issues, etc.).
+    It iterates through each year of the user's membership.
+    """
+    creation_query = f"""
+    query {{
+        user(login: "{USERNAME}") {{
+            createdAt
+        }}
+    }}
+    """
+    creation_result = run_graphql_query(creation_query)
+    creation_date_str = creation_result["data"]["user"]["createdAt"]
+    creation_date = datetime.strptime(creation_date_str, "%Y-%m-%dT%H:%M:%SZ")
+    creation_year = creation_date.year
+    current_year = datetime.now().year
+
+    total_stats = {
+        "commits": 0,
+        "prs": 0,
+        "issues": 0,
+        "reviews": 0,
+    }
+
+    for year in range(creation_year, current_year + 1):
+        from_date = f"{year}-01-01T00:00:00Z"
+        to_date = f"{year}-12-31T23:59:59Z"
+        
+        if year == current_year:
+            to_date = datetime.utcnow().isoformat(timespec='seconds') + 'Z'
+
+        contrib_query = f"""
+        query {{
+          user(login: "{USERNAME}") {{
+            contributionsCollection(from: "{from_date}", to: "{to_date}") {{
+              totalCommitContributions
+              totalPullRequestContributions
+              totalIssueContributions
+              totalPullRequestReviewContributions
+            }}
+          }}
+        }}
+        """
+        
+        result = run_graphql_query(contrib_query)
+        if result.get("data", {}).get("user"):
+            collection = result["data"]["user"]["contributionsCollection"]
+            total_stats["commits"] += collection.get("totalCommitContributions", 0)
+            total_stats["prs"] += collection.get("totalPullRequestContributions", 0)
+            total_stats["issues"] += collection.get("totalIssueContributions", 0)
+            total_stats["reviews"] += collection.get("totalPullRequestReviewContributions", 0)
+
+    return total_stats
+
+def generate_svg_badge(stars, commits, contributions):
+    """Generates an SVG badge image with multiple stats."""
+    
+    def format_number(n):
+        if n >= 1000:
+            return f"{n/1000:.1f}k"
+        return str(n)
+
+    display_stars = format_number(stars)
+    display_commits = format_number(commits)
+    display_contributions = format_number(contributions)
 
     svg_template = f"""
-    <svg xmlns="http://www.w3.org/2000/svg" width="210" height="28" role="img" aria-label="Total Contribution Stars: {display_stars}">
-        <title>Total Contribution Stars: {display_stars}</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="320" height="95" role="img">
+        <title>GitHub Stats</title>
         <style>
-            .text {{ font: 600 12px 'Segoe UI', Ubuntu, "Helvetica Neue", Sans-Serif; fill: #fff; }}
+            .card {{
+                fill: #171c22;
+                stroke: #333;
+                stroke-width: 1;
+                rx: 4.5;
+            }}
+            .label {{ font: 600 13px 'Segoe UI', Ubuntu, "Helvetica Neue", Sans-Serif; fill: #fff; text-anchor: start; }}
+            .value {{ font: 600 13px 'Segoe UI', Ubuntu, "Helvetica Neue", Sans-Serif; fill: #fff; text-anchor: end; }}
         </style>
-        <rect width="155" height="28" fill="#555" rx="4.5" />
-        <rect x="155" width="55" height="28" fill="#007ec6" rx="4.5" />
-        <rect x="155" width="55" height="28" fill="url(#gradient)" rx="4.5" />
-        <defs>
-            <linearGradient id="gradient" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0%" stop-color="#007ec6"/>
-                <stop offset="100%" stop-color="#2ca0d9"/>
-            </linearGradient>
-        </defs>
-        <g class="text" text-anchor="middle">
-            <text x="77.5" y="17.5">Total Contribution Stars</text>
-            <text x="182.5" y="17.5">{display_stars}</text>
+        <rect class="card" width="319" height="94" />
+        <g transform="translate(20, 25)">
+            <text class="label">Total Contribution Stars</text>
+            <text class="value" x="280" y="0">{display_stars}</text>
+        </g>
+        <g transform="translate(20, 50)">
+            <text class="label">Total Commits</text>
+            <text class="value" x="280" y="0">{display_commits}</text>
+        </g>
+        <g transform="translate(20, 75)">
+            <text class="label">Total Contributions</text>
+            <text class="value" x="280" y="0">{display_contributions}</text>
         </g>
     </svg>
     """
@@ -112,7 +178,12 @@ def generate_svg_badge(stars_count):
 if __name__ == "__main__":
     try:
         total_stars = get_contribution_stars()
-        svg_content = generate_svg_badge(total_stars)
+        contribution_stats = get_contribution_stats()
+        
+        total_commits = contribution_stats["commits"]
+        total_contributions = sum(contribution_stats.values())
+        
+        svg_content = generate_svg_badge(total_stars, total_commits, total_contributions)
         
         # Ensure the output directory exists
         output_dir = "generated"
@@ -122,7 +193,7 @@ if __name__ == "__main__":
         with open(os.path.join(output_dir, "total-stars.svg"), "w") as f:
             f.write(svg_content)
             
-        print(f"Successfully generated SVG with {total_stars} total stars.")
+        print(f"Successfully generated SVG with {total_stars} stars, {total_commits} commits, and {total_contributions} contributions.")
 
     except Exception as e:
         print(f"An error occurred: {e}", file=sys.stderr)
