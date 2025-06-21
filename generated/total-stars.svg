@@ -1,26 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="320" height="95" role="img">
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="70" role="img">
         <title>GitHub Stats</title>
         <style>
             .card {
-                fill: #171c22;
-                stroke: #333;
+                fill: #ffffff;
+                stroke: #e2e8f0;
                 stroke-width: 1;
                 rx: 4.5;
             }
-            .label { font: 600 13px 'Segoe UI', Ubuntu, "Helvetica Neue", Sans-Serif; fill: #fff; text-anchor: start; }
-            .value { font: 600 13px 'Segoe UI', Ubuntu, "Helvetica Neue", Sans-Serif; fill: #fff; text-anchor: end; }
+            .label { font: 600 13px 'Segoe UI', Ubuntu, "Helvetica Neue", Sans-Serif; fill: #4f46e5; text-anchor: start; }
+            .value { font: 600 13px 'Segoe UI', Ubuntu, "Helvetica Neue", Sans-Serif; fill: #1f2937; text-anchor: end; }
         </style>
-        <rect class="card" width="319" height="94" />
+        <rect class="card" width="319" height="69" />
         <g transform="translate(20, 25)">
-            <text class="label">Total Contribution Stars</text>
+            <text class="label">Total Stars</text>
             <text class="value" x="280" y="0">87</text>
         </g>
         <g transform="translate(20, 50)">
-            <text class="label">Total Commits</text>
-            <text class="value" x="280" y="0">175</text>
-        </g>
-        <g transform="translate(20, 75)">
             <text class="label">Total Contributions</text>
-            <text class="value" x="280" y="0">210</text>
+            <text class="value" x="280" y="0">211</text>
         </g>
     </svg>
