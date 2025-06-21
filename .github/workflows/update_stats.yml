@@ -43,7 +43,7 @@ jobs:
           commit_message: "chore: Update contribution stats SVG"
           file_pattern: generated/total-stars.svg
           # Rebase before pushing
-          git_options: "--rebase"
+          pull_strategy: '--rebase'
           commit_user_name: "github-actions[bot]"
           commit_user_email: "github-actions[bot]@users.noreply.github.com"
           commit_author: "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
