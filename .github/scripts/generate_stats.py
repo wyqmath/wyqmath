@@ -76,11 +76,11 @@ def get_contribution_stars():
     # Sum the stars from all unique repositories
     total_stars = sum(unique_repos.values())
     
-    return total_stars
+    return total_stars, unique_repos
 
 def get_contribution_stats():
     """
-    Fetches all-time contribution stats for a user (commits, PRs, issues, etc.).
+    Fetches all-time contribution stats for a user (total contributions).
     It iterates through each year of the user's membership.
     """
     creation_query = f"""
@@ -96,12 +96,7 @@ def get_contribution_stats():
     creation_year = creation_date.year
     current_year = datetime.now().year
 
-    total_stats = {
-        "commits": 0,
-        "prs": 0,
-        "issues": 0,
-        "reviews": 0,
-    }
+    total_contributions = 0
 
     for year in range(creation_year, current_year + 1):
         from_date = f"{year}-01-01T00:00:00Z"
@@ -114,10 +109,9 @@ def get_contribution_stats():
         query {{
           user(login: "{USERNAME}") {{
             contributionsCollection(from: "{from_date}", to: "{to_date}") {{
-              totalCommitContributions
-              totalPullRequestContributions
-              totalIssueContributions
-              totalPullRequestReviewContributions
+              contributionCalendar {{
+                totalContributions
+              }}
             }}
           }}
         }}
@@ -126,14 +120,12 @@ def get_contribution_stats():
         result = run_graphql_query(contrib_query)
         if result.get("data", {}).get("user"):
             collection = result["data"]["user"]["contributionsCollection"]
-            total_stats["commits"] += collection.get("totalCommitContributions", 0)
-            total_stats["prs"] += collection.get("totalPullRequestContributions", 0)
-            total_stats["issues"] += collection.get("totalIssueContributions", 0)
-            total_stats["reviews"] += collection.get("totalPullRequestReviewContributions", 0)
+            if collection.get("contributionCalendar"):
+                total_contributions += collection["contributionCalendar"].get("totalContributions", 0)
 
-    return total_stats
+    return total_contributions
 
-def generate_svg_badge(stars, commits, contributions):
+def generate_svg_badge(stars, contributions):
     """Generates an SVG badge image with multiple stats."""
     
     def format_number(n):
@@ -142,32 +134,27 @@ def generate_svg_badge(stars, commits, contributions):
         return str(n)
 
     display_stars = format_number(stars)
-    display_commits = format_number(commits)
     display_contributions = format_number(contributions)
 
     svg_template = f"""
-    <svg xmlns="http://www.w3.org/2000/svg" width="320" height="95" role="img">
+    <svg xmlns="http://www.w3.org/2000/svg" width="320" height="70" role="img">
         <title>GitHub Stats</title>
         <style>
             .card {{
-                fill: #171c22;
-                stroke: #333;
+                fill: #ffffff;
+                stroke: #e2e8f0;
                 stroke-width: 1;
                 rx: 4.5;
             }}
-            .label {{ font: 600 13px 'Segoe UI', Ubuntu, "Helvetica Neue", Sans-Serif; fill: #fff; text-anchor: start; }}
-            .value {{ font: 600 13px 'Segoe UI', Ubuntu, "Helvetica Neue", Sans-Serif; fill: #fff; text-anchor: end; }}
+            .label {{ font: 600 13px 'Segoe UI', Ubuntu, "Helvetica Neue", Sans-Serif; fill: #4f46e5; text-anchor: start; }}
+            .value {{ font: 600 13px 'Segoe UI', Ubuntu, "Helvetica Neue", Sans-Serif; fill: #1f2937; text-anchor: end; }}
         </style>
-        <rect class="card" width="319" height="94" />
+        <rect class="card" width="319" height="69" />
         <g transform="translate(20, 25)">
-            <text class="label">Total Contribution Stars</text>
+            <text class="label">Total Stars</text>
             <text class="value" x="280" y="0">{display_stars}</text>
         </g>
         <g transform="translate(20, 50)">
-            <text class="label">Total Commits</text>
-            <text class="value" x="280" y="0">{display_commits}</text>
-        </g>
-        <g transform="translate(20, 75)">
             <text class="label">Total Contributions</text>
             <text class="value" x="280" y="0">{display_contributions}</text>
         </g>
@@ -177,13 +164,10 @@ def generate_svg_badge(stars, commits, contributions):
 
 if __name__ == "__main__":
     try:
-        total_stars = get_contribution_stars()
-        contribution_stats = get_contribution_stats()
+        total_stars, unique_repos = get_contribution_stars()
+        total_contributions = get_contribution_stats()
         
-        total_commits = contribution_stats["commits"]
-        total_contributions = sum(contribution_stats.values())
-        
-        svg_content = generate_svg_badge(total_stars, total_commits, total_contributions)
+        svg_content = generate_svg_badge(total_stars, total_contributions)
         
         # Ensure the output directory exists
         output_dir = "generated"
@@ -193,7 +177,7 @@ if __name__ == "__main__":
         with open(os.path.join(output_dir, "total-stars.svg"), "w") as f:
             f.write(svg_content)
             
-        print(f"Successfully generated SVG with {total_stars} stars, {total_commits} commits, and {total_contributions} contributions.")
+        print(f"Successfully generated SVG with {total_stars} stars and {total_contributions} contributions.")
 
     except Exception as e:
         print(f"An error occurred: {e}", file=sys.stderr)
