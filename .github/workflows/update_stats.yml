@@ -21,11 +21,6 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Pull latest changes to avoid conflicts
-        run: git pull --rebase
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -47,6 +42,8 @@ jobs:
         with:
           commit_message: "chore: Update contribution stats SVG"
           file_pattern: generated/total-stars.svg
+          # Rebase before pushing
+          git_options: "--rebase"
           commit_user_name: "github-actions[bot]"
           commit_user_email: "github-actions[bot]@users.noreply.github.com"
           commit_author: "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
