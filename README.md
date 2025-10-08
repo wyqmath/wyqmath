@@ -25,7 +25,7 @@ My research interest lies in **AI for Science**. For more details about my work,
 
 ---
 
-### My Total GitHub Influence
+### My Total GitHub Stats
 ![My GitHub Stats](https://raw.githubusercontent.com/wyqmath/wyqmath/main/generated/total-stars.svg)
 
 ---
