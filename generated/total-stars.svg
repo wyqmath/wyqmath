@@ -13,7 +13,7 @@
         <rect class="card" width="319" height="69" />
         <g transform="translate(20, 25)">
             <text class="label">Total Stars</text>
-            <text class="value" x="280" y="0">98</text>
+            <text class="value" x="280" y="0">99</text>
         </g>
         <g transform="translate(20, 50)">
             <text class="label">Total Contributions</text>
